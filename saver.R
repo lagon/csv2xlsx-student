@@ -33,6 +33,37 @@ writeSingleColumn <- function(colLetter, colName, colDefinition, table, sheetNam
   
 }
 
+RemoveDiacritics <- function(string) {
+  chartr("éěřťýúůíóášďĺžčňÉĚŘŤÝÚŮÍÓÁŠĎĹŽČŇ", 
+         "eertyuuioasdlzcnEERTYUUIOASDLZCN",
+         string
+  )
+}
+
+GenerateExcelFileNameFromCSVFile <- function(studentDirectory) {
+  tryCatch(expr = {
+    path <- file.path(studentDirectory, head(list.files(studentDirectory, pattern = "*.csv"), 1))
+    f <- file(path)
+    allRows <- readLines(f)
+    close(f)
+    
+    headerInfo <- fread(input = paste(unlist(allRows[1:2]), collapse = "\n"))
+    return(paste0("DEA_WA_", RemoveDiacritics(headerInfo[1, `Last Name`])))
+  }, error = function(e) {
+    return(NULL)
+  })
+}
+
+
+GenerateExcelFileName <- function(studentDirectory) {
+  excelFileName <- GenerateExcelFileNameFromCSVFile(studentDirectory)
+  if (is.null(excelFileName)) {
+    return(basename(studentDirectory))
+  } else {
+    return(excelFileName)
+  }
+}
+
 WriteSingleSheet <- function(table, tableFile, tableNum, workbook, conversionSetup) {
   sheetName <- paste0("Data(", tableNum, ")")
   createSheet(workbook, sheetName)
@@ -48,7 +79,12 @@ WriteSingleSheet <- function(table, tableFile, tableNum, workbook, conversionSet
 }
 
 WriteStudentResults <- function(studentFiles, outputFilename, conversionSetup, outputDirectory) {
-  excelWorkbook <- XLConnect::loadWorkbook(file.path(outputDirectory, paste0(outputFilename, ".xlsx")), create = TRUE)
+  workbookFileName <- paste0(outputFilename, ".xlsx")
+  workbookFullPath <- file.path(outputDirectory, workbookFileName)
+  
+  messageConversionLog("Output Excel goes to ", workbookFullPath)
+  
+  excelWorkbook <- XLConnect::loadWorkbook(workbookFullPath, create = TRUE)
   mapply(studentFiles, names(studentFiles), seq(1, length(studentFiles)), FUN = WriteSingleSheet, MoreArgs = list(workbook = excelWorkbook, conversionSetup = conversionSetup))
   saveWorkbook(excelWorkbook)
 }

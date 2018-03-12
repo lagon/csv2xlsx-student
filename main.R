@@ -48,7 +48,8 @@ ProcessSingleStudent <- function(studentDirectory, conversionSetup, outputDirect
     cat("...")
     studentFiles <- TransformStudentData(studentFiles, conversionSetup)
     cat("...")
-    WriteStudentResults(studentFiles, basename(studentDirectory), conversionSetup, outputDirectory)
+    convertedExcelFileName <- GenerateExcelFileName(studentDirectory)
+    WriteStudentResults(studentFiles, convertedExcelFileName, conversionSetup, outputDirectory)
     cat("...DONE\n")
     writeSuccessfullConversionLog(outputDirectory)
   }, error = function(e) {

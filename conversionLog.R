@@ -26,8 +26,11 @@ messageConversionLog <- function(...) {
   tryCatch({
     logFile <- file(description = logFilePath, open = "w")
     writeLines(text = unlist(conversionLog$Messages), con = logFile)
-    error = warning(paste0("Unable to write log file: ", logFilePath))
-  }, finally = close(logFile))
+  },
+  error = function(e) {
+    warning(paste0("Unable to write log file: ", logFilePath))
+  }, 
+  finally = close(logFile))
 }
 
 writeSuccessfullConversionLog <- function(outputDirectory) {
